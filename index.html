@@ -410,6 +410,33 @@ body.compact .progress-wrap{
 body.compact .progress-label{
  font-size:10px;
 }
+.fixed-note{
+ margin:12px;
+ padding:14px 16px;
+ background:linear-gradient(180deg,#141e38,#0f172a);
+ border:1px solid #243056;
+ border-left:4px solid var(--accent);
+ border-radius:14px;
+ color:#e8ecff;
+ box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+
+/* title /
+.note-title{
+ font-size:13px;
+ font-weight:700;
+ letter-spacing:1px;
+ color:var(--accent);
+ margin-bottom:6px;
+}
+
+/ isi */
+.note-body{
+ font-size:14px;
+ line-height:1.6;
+ white-space:pre-line;
+ opacity:.95;
+}
 </style>
 </head>
 
@@ -417,7 +444,17 @@ body.compact .progress-label{
 
 <header id="mainHeader">
 </header>
-
+<div class="fixed-note">
+  <div class="note-title">
+    📌 CATATAN PENTING
+  </div>
+  <div class="note-body">
+Daily reset jam 04:00 WIB
+Weekly reset hari Rabu
+Abyss Corridor max 3x
+Jangan lupa Shugo Festival
+  </div>
+</div>
 <div id="app" class="grid"></div>
 
 <script>
@@ -1717,6 +1754,7 @@ function toggleFocusMode(){
 </body>
 
 </html>
+
 
 
 
