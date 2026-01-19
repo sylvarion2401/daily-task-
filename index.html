@@ -430,9 +430,7 @@ let data=JSON.parse(localStorage.getItem(STORE))||{
  focusMode: false, // 🔥 SMART FOCUS DEFAULT ON
  uiMode:"normal",
 tasks:[
- {id:"t1",name:"Nightmare",type:"daily",active:true,hour:4,minute:0},
- {id:"t2",name:"Daily Dungeon",type:"daily",active:true,hour:4,minute:0},
- {id:"t3",name:"Duty",type:"daily",active:true,hour:4,minute:0},
+ {id:"t1",name:"Duty",type:"daily",active:true,hour:4,minute:0},
  {id:"t3a",name:"Shugo Festival",type:"daily",active:true,hour:4,minute:0,max:2},
  {id:"tAC",name:"Abyss Corridor",type:"manual",active:true,max:3},
  {id:"t4", name:"Raid", type:"weekly", active:true, day:3, hour:4,minute:0},
@@ -441,9 +439,10 @@ tasks:[
  {id:"t7",name:"Abyss Scroll",type:"weekly",active:true,day:3,hour:4,minute:0},
  {id:"t8",name:"Arcanist",type:"weekly",active:true,day:3,hour:4,minute:0,max:5},
  {id:"t9",name:"Deus",type:"weekly",active:true,day:3,hour:4,minute:0,max:5},
- {id:"t10",name:"Odyle Craft",type:"weekly",active:true,day:3,hour:4,minute:0},
-
- {id:"t11",name:"Odyle Shop",type:"shop",active:true,day:0,hour:23,minute:0}
+ {id:"t10",name:"Nightmare",type:"weekly",active:true,day:3,hour:4,minute:0},
+ {id:"t11",name:"Daily Dungeon",type:"weekly",active:true,day:3,hour:4,minute:0},
+ {id:"t12",name:"Odyle Craft",type:"weekly",active:true,day:3,hour:4,minute:0},
+ {id:"t13",name:"Odyle Shop",type:"shop",active:true,day:0,hour:23,minute:0}
 ]
 };
 
@@ -1716,4 +1715,5 @@ function toggleFocusMode(){
 </div>
 <div id="manualResetModal" style="display:none"></div>
 </body>
+
 </html>
