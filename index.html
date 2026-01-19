@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#4fc3f7">
+<title>Daily Task</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+.task.dragging {
+ opacity: 0.4;
+}
+.task.drag-over {
+ outline: 2px dashed var(--accent);
+}  
+.update-popup {
+ position: fixed;
+ inset: 0;
+ background: rgba(0,0,0,.55);
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ z-index: 9999;
+}
+
+.update-popup.hidden { display: none; }
+
+.update-card {
+ background: #0b1220;
+ color: #fff;
+ padding: 1.4rem;
+ border-radius: 14px;
+ width: min(320px, 90%);
+ box-shadow: 0 10px 40px rgba(0,0,0,.4);
+}
+
+.update-card h3 {
+ margin: 0 0 .4rem;
+ font-size: 1.1rem;
+}
+
+.update-card p {
+ font-size: .9rem;
+ opacity: .85;
+}
+
+.update-actions {
+ display: flex;
+ gap: .5rem;
+ margin-top: 1rem;
+}
+
+.update-actions button {
+ flex: 1;
+ padding: .55rem;
+ border-radius: 10px;
+ border: none;
+ font-weight: 600;
+ cursor: pointer;
+}
+
+.update-actions button:first-child {
+ background: #4f8cff;
+ color: #fff;
+}
+
+.update-actions .ghost {
+ background: transparent;
+ color: #ccc;
+ border: 1px solid #333;
+}
+/* ===== MODAL RESET SETTINGS ===== */
+.modal-backdrop{
+ position:fixed;inset:0;
+ background:rgba(0,0,0,.6);
+ display:flex;align-items:center;justify-content:center;
+ z-index:99;
+}
+.modal{
+ width:min(420px,95%);
+ background:var(--card);
+ border-radius:16px;
+ padding:14px;
+}
+.modal h3{
+ margin:0 0 10px;
+ font-size:14px;
+ letter-spacing:.5px;
+}
+.modal h4{
+ margin:8px 0 4px;
+ font-size:11px;
+ letter-spacing:1px;
+}
+.form-row{
+ display:flex;
+ gap:8px;
+ margin-bottom:8px;
+}
+.form-row label{
+ flex:1;
+ font-size:11px;
+ opacity:.8;
+}
+.modal-footer{
+ display:flex;
+ justify-content:flex-end;
+ gap:8px;
+ margin-top:10px;
+}  
+:root{
+ --bg:#0b1220;--card:#121b2f;
+ --daily:#1a2a4a;--weekly:#1a1538;--shop:#2a1a1a;
+ --accent:#4fc3f7;--weeklyAccent:#b388ff;--shopAccent:#ffb74d;
+ --danger:#ff5252;--ok:#00e676;--text:#e0e6ff;
+}
+*{box-sizing:border-box;font-family:Inter,system-ui}
+body{margin:0;background:var(--bg);color:var(--text)}
+
+header{
+ padding:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center
+}
+select,button{
+ background:var(--card);color:var(--text);
+ border:1px solid #243056;padding:6px 10px;border-radius:6px
+}
+button{cursor:pointer}
+button.primary{background:var(--accent);color:#000}
+
+.grid{
+ display:grid;
+ align-items:start;
+ grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+ gap:10px;
+ padding:10px;
+}
+.card{
+ background:var(--card);
+ border-radius:12px;
+ padding:8px;
+}
+
+.section{
+ margin-top:6px;
+ border-radius:8px;
+ padding:6px;
+}
+.section.daily{background:var(--daily)}
+.section.weekly{background:var(--weekly)}
+.section.shop{background:var(--shop)}
+
+.section-header{
+ display:flex;justify-content:space-between;align-items:center
+}
+.section h4{
+ margin:4px 0 6px;font-size:12px;letter-spacing:1px;opacity:.85
+}
+.section.daily h4{color:var(--accent)}
+.section.weekly h4{color:var(--weeklyAccent)}
+.section.shop h4{color:var(--shopAccent)}
+
+.task{
+ display:flex;
+ align-items:center;
+ padding:4px 6px;
+ border-radius:6px;
+ margin:3px 0;
+ background:rgba(255,255,255,.03);
+ font-size:12px;
+}
+.task.reset-soon{
+ background:rgba(255,82,82,.18);
+ border:1px solid var(--danger);
+}
+.task.reset-now{
+ background:rgba(79,195,247,.14);
+ border:1px solid var(--accent);
+}
+
+.task label{
+ display:flex;align-items:center;gap:6px;
+ cursor:pointer;flex:1
+}
+.task span{
+ font-size:11px;
+}
+.countdown{font-size:11px;opacity:.8}
+
+.progress-wrap{margin-top:8px}
+.progress-label{font-size:10px;opacity:.8;margin-bottom:2px}
+.progress{
+ height:4px;background:#1c2748;border-radius:4px;overflow:hidden
+}
+.progress span{
+ display:block;height:100%;
+ background:linear-gradient(90deg,var(--ok),var(--accent));
+}
+.calc-modes label{
+ display:block;
+ font-size:12px;
+ margin:6px 0;
+ cursor:pointer;
+}
+
+.calc-input input{
+ width:100%;
+ padding:10px;
+ background:#0b1220;
+ border:1px solid #243056;
+ border-radius:8px;
+ color:var(--text);
+ font-size:15px;
+}
+
+.calc-result{
+ margin-top:10px;
+ font-size:12px;
+}
+
+.calc-result div{
+ display:flex;
+ justify-content:space-between;
+ padding:6px 0;
+ border-bottom:1px dashed #243056;
+}
+
+.calc-keypad{
+ display:grid;
+ grid-template-columns:repeat(3,1fr);
+ gap:6px;
+ margin-top:10px;
+}
+
+.calc-keypad button,
+.calc-keypad select{
+ background:#1c2748;
+ border:1px solid #243056;
+ color:var(--text);
+ padding:10px;
+ border-radius:8px;
+ font-weight:600;
+ cursor:pointer;
+}
+
+.calc-clear{
+ grid-column:span;
+ background:rgba(255,82,82,.25);
+ border-color:var(--danger);
+ color:var(--danger);
+}
+.calc-keypad button[data-back]{
+ grid-column: span;
+ background:#243056;
+}
+.card.collapsed{
+ padding:10px;
+}
+
+.card.collapsed .char-content{
+ display:none;
+}
+.char-header{
+ display:flex;
+ padding:2px 0 4px;
+ justify-content:space-between;
+ align-items:center;
+ cursor:pointer;
+}
+.char-header b{
+ font-size:13px;
+}
+.char-header button{
+ cursor:pointer;
+}
+.task:focus-within{
+ box-shadow: 0 0 0 1px var(--accent);
+}
+.section.abyss{
+ background:#1e1b14;
+ border:1px solid #3a3323;
+ box-shadow:none;
+}
+
+/* header */
+.section.abyss h4{
+ color:#d8c9a3;
+ font-size:13px;
+ letter-spacing:1.2px;
+}
+
+/* badge */
+.abyss-badge{
+ background:#2b2618;
+ color:#e6d6a8;
+ font-size:10px;
+ font-weight:700;
+ padding:2px 10px;
+ border-radius:999px;
+ box-shadow:none;
+}
+
+/* task row */
+.section.abyss .task{
+ background:transparent;
+ border:1px solid rgba(216,201,163,.15);
+}
+.section.abyss .task.reset-now{
+ background:rgba(201,178,124,.12);
+ border:1px solid #c9b27c;
+}
+
+/* progress bar */
+.progress-abyss .progress{
+ height:8px;
+ background:#15130e;
+ border-radius:999px;
+}
+
+/* isi progress */
+.progress-abyss .progress span{
+ background:#c9b27c;
+ box-shadow:none;
+}
+
+/* label */
+.progress-abyss .progress-label{
+ font-weight:600;
+ color:#cfc3a0;
+}
+.card{
+ overflow:hidden;
+}
+
+.char-content.slide{
+ display:flex;
+ flex-direction:column;
+ transform: translateX(0);
+ transition: transform .25s ease, opacity .25s ease;
+}
+
+/* saat collapse → geser ke kanan */
+.card.collapsed .char-content.slide{
+ transform: translateX(120%);
+ opacity:0;
+ height:0;
+ pointer-events:none;
+}
+/* ================= UI COMPACT MODE ================= */
+body.compact{
+ --pad-card:6px;
+ --pad-section:4px;
+ --pad-task:2px 4px;
+ --fs-task:11px;
+ --fs-header:11px;
+}
+
+/* grid lebih rapat */
+body.compact .grid{
+ grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+ gap:8px;
+}
+
+/* card */
+body.compact .card{
+ padding:var(--pad-card);
+}
+
+/* section */
+body.compact .section{
+ padding:var(--pad-section);
+ margin-top:4px;
+}
+
+/* section title */
+body.compact .section h4{
+ font-size:var(--fs-header);
+ margin:2px 0 4px;
+}
+
+/* task */
+body.compact .task{
+ padding:var(--pad-task);
+ margin:2px 0;
+ font-size:var(--fs-task);
+}
+
+/* checkbox gap */
+body.compact .task label{
+ gap:4px;
+}
+
+/* char header */
+body.compact .char-header{
+ padding:0 0 2px;
+}
+body.compact .char-header b{
+ font-size:12px;
+}
+
+/* progress */
+body.compact .progress{
+ height:3px;
+}
+body.compact .progress-wrap{
+ margin-top:4px;
+}
+
+/* optional: sembunyikan label */
+body.compact .progress-label{
+ font-size:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header id="mainHeader">
+</header>
+
+<div id="app" class="grid"></div>
+
+<script>
+/* ================= DATA ================= */
+const STORE="aion2_tracker_v722";
+const RESET_HIGHLIGHT_MS=10*60*1000;
+
+let data=JSON.parse(localStorage.getItem(STORE))||{
+ accounts:[],activeAccountId:null,
+ focusMode: false, // 🔥 SMART FOCUS DEFAULT ON
+ uiMode:"normal",
+tasks:[
+ {id:"t1",name:"Nightmare",type:"daily",active:true,hour:4,minute:0},
+ {id:"t2",name:"Daily Dungeon",type:"daily",active:true,hour:4,minute:0},
+ {id:"t3",name:"Duty",type:"daily",active:true,hour:4,minute:0},
+ {id:"t3a",name:"Shugo Festival",type:"daily",active:true,hour:4,minute:0,max:2},
+ {id:"tAC",name:"Abyss Corridor",type:"manual",active:true,max:3},
+ {id:"t4", name:"Raid", type:"weekly", active:true, day:3, hour:4,minute:0},
+ {id:"t5",name:"Ascension Trial",type:"weekly",active:true,day:3,hour:4,minute:0},
+ {id:"t6",name:"Weekly Scroll",type:"weekly",active:true,day:3,hour:4,minute:0},
+ {id:"t7",name:"Abyss Scroll",type:"weekly",active:true,day:3,hour:4,minute:0},
+ {id:"t8",name:"Arcanist",type:"weekly",active:true,day:3,hour:4,minute:0,max:5},
+ {id:"t9",name:"Deus",type:"weekly",active:true,day:3,hour:4,minute:0,max:5},
+ {id:"t10",name:"Odyle Craft",type:"weekly",active:true,day:3,hour:4,minute:0},
+
+ {id:"t11",name:"Odyle Shop",type:"shop",active:true,day:0,hour:23,minute:0}
+]
+};
+
+const save=()=>localStorage.setItem(STORE,JSON.stringify(data));
+// 🔧 PATCH 2 — MIGRATION UI MODE (AMAN USER LAMA)
+if(!data.uiMode){
+ data.uiMode = "normal";
+ save();
+}
+// 🔧 PATCH MIGRATION TASK (AMAN)
+// 🔥 PATCH MIGRATION 
+data.accounts?.forEach(acc=>{
+ acc.characters?.forEach(c=>{
+  Object.entries(c.progress || {}).forEach(([taskId,p])=>{
+   const t = data.tasks.find(t=>t.id===taskId);
+   if(!t) return;
+
+   // kalau lastReset belum pakai minute → sejajarkan
+   const win = resetWindowId(t);
+
+   // sync counter lama
+   if(t.max && p.count == null){
+    p.count = p.checked ? t.max : 0;
+   }
+  });
+ });
+});
+save();
+const now=()=>new Date();
+const active=()=>data.accounts.find(a=>a.id===data.activeAccountId);
+
+/* ================= RESET ENGINE ================= */
+function resetWindowId(t){
+ const d = new Date();
+ const r = new Date(d);
+
+ // DAILY
+ if(t.type === "daily"){
+  r.setHours(t.hour, t.minute || 0, 0, 0);
+  if(d < r) r.setDate(r.getDate() - 1);
+  return r.toDateString();
+ }
+
+ // WEEKLY & SHOP
+ if(t.type === "weekly" || t.type === "shop"){
+  const diff = (d.getDay() - t.day + 7) % 7;
+  r.setDate(d.getDate() - diff);
+  r.setHours(t.hour, t.minute || 0, 0, 0);
+  if(d < r) r.setDate(r.getDate() - 7);
+  return r.toDateString();
+ }
+ return "";
+}
+
+function nextReset(t){
+ const d=now(),r=new Date(d);
+ if(t.type==="daily"){
+  r.setHours(t.hour, t.minute || 0, 0, 0);
+  if(d>=r) r.setDate(r.getDate()+1);
+  return r;
+ }
+ const diff=(t.day-d.getDay()+7)%7;
+ r.setDate(d.getDate()+diff);
+ r.setHours(t.hour, t.minute || 0, 0, 0);
+ if(d>=r) r.setDate(r.getDate()+7);
+ return r;
+}
+function autoResetCheck(){
+ let changed=false;
+
+ data.accounts.forEach(acc=>{
+  acc.characters.forEach(c=>{
+   data.tasks.forEach(t=>{
+ if(t.type === "manual") return; // ⛔ JANGAN AUTO RESET
+    const win = resetWindowId(t);
+    const p = c.progress[t.id];
+    if(!p) return;
+
+if(p.lastReset && p.lastReset !== win){
+c.progress[t.id]={
+ checked:false,
+ count: t.max ? 0 : undefined,
+ lastReset:win,
+ resetAt:Date.now()
+};
+     changed=true;
+    }
+   });
+  });
+ });
+
+ if(changed){
+  save();
+  render();
+ }
+}
+
+/* ================= TIME FORMAT ================= */
+function formatHMS(ms){
+ if(ms <= 0) return "RESET";
+
+ const totalMin = Math.ceil(ms / 60000); // ⬅ PENTING
+ const d = Math.floor(totalMin / 1440);
+ const h = Math.floor((totalMin % 1440) / 60);
+ const m = totalMin % 60;
+
+ if(d > 0) return `${d}d ${h}h ${m}m`;
+ if(h > 0) return `${h}h ${m}m`;
+ return `${m}m`;
+}
+
+function sectionCountdown(type){
+ let soonest=null;
+ data.tasks
+ .filter(t => t.type===type && t.active!==false) // 🔥 PATCH
+ .forEach(t=>{
+  const r=nextReset(t);
+  if(!soonest||r<soonest) soonest=r;
+ });
+ return soonest?formatHMS(soonest-now()):"";
+}
+function renderHeader(){
+ const h = document.getElementById("mainHeader");
+ if(!h) return;
+
+ h.innerHTML = `
+  <b>Daily Task</b>
+
+  <select id="accountSelect"></select>
+
+  <button onclick="addAccount()">+ Account</button>
+  <button onclick="addCharacter()" class="primary">+ Character</button>
+  <button onclick="openTaskManager()">📝 Manage Task</button>
+  <button onclick="openMarketCalc()">📊 Market Calc</button>
+<button onclick="toggleFocusMode()"
+ style="
+  border-color:${data.focusMode ? 'var(--ok)' : '#555'};
+  color:${data.focusMode ? 'var(--ok)' : 'var(--text)'};
+ ">
+ 🧠 Focus: <b>${data.focusMode ? "ON" : "OFF"}</b>
+</button>
+<button onclick="toggleExpandAll()" id="expandAllBtn">
+ 🔽 Expand All
+</button>
+<button onclick="toggleUIMode()">
+ 📐 UI: <b>${data.uiMode === "compact" ? "COMPACT" : "NORMAL"}</b>
+</button>
+<button onclick="openManualReset()">♻ Manual Reset</button>
+  <button onclick="openResetSettings()">⚙ Reset Settings</button>
+
+  <button onclick="resetAllData()"
+   style="border:1px solid #ff5252;color:#ff5252">
+   Reset Data
+  </button>
+
+
+ `;
+}
+function toggleUIMode(){
+ data.uiMode = data.uiMode === "compact"
+  ? "normal"
+  : "compact";
+
+ save();
+ render();
+}
+function applyUIMode(){
+ document.body.classList.toggle(
+  "compact",
+  data.uiMode === "compact"
+ );
+}
+function hideEmptySection(section){
+ if(!section) return;
+ if(!section.querySelector(".task")){
+  section.remove();
+ }
+}
+/* ================= RENDER ================= */
+const app = document.getElementById("app");
+function render(){
+let hasManualTask = false;
+   renderHeader();
+    const accountSelect = document.getElementById("accountSelect");
+ if(!accountSelect) return;
+data.tasks.forEach(t => t.minute ??= 0);
+ accountSelect.innerHTML="";
+ data.accounts.forEach(a=>accountSelect.append(new Option(a.name,a.id)));
+ accountSelect.value=data.activeAccountId;
+ accountSelect.onchange=e=>{
+  data.activeAccountId=e.target.value;save();render();
+ };
+
+ app.innerHTML="";
+ const acc=active(); if(!acc)return;
+
+ acc.characters.forEach(c=>{
+  // 🔥 PATCH MIGRATION (character lama)
+if(c.collapsed === undefined){
+ c.collapsed = false;
+}
+let dDone=0,dTotal=0;
+let wDone=0,wTotal=0;
+let sDone=0,sTotal=0;
+let mDone=0,mTotal=0;
+
+  const card=document.createElement("div");
+  card.className="card";
+  card.innerHTML=`
+<div class="char-header" data-char="${c.id}">
+  <b>${c.name}</b>
+
+  <div style="display:flex;gap:6px;align-items:center">
+   <button onclick="toggleChar('${c.id}')"
+    style="
+     background:transparent;
+     border:1px solid #243056;
+     color:var(--text);
+     border-radius:6px;
+     padding:2px 6px;
+     cursor:pointer
+    ">
+    ${c.collapsed ? "▶" : "▼"}
+   </button>
+
+   <button onclick="deleteCharacter('${c.id}')"
+    style="
+     background:transparent;
+     border:1px solid #ff5252;
+     color:#ff5252;
+     border-radius:6px;
+     padding:2px 6px;
+     cursor:pointer
+    ">
+    🗑
+   </button>
+  </div>
+ </div>
+`;
+
+  const daily=document.createElement("div");
+  daily.className="section daily";
+  daily.innerHTML=`<div class="section-header"><h4>DAILY</h4><span class="countdown" data-type="daily">${sectionCountdown("daily")}</span></div>`;
+  const manual = document.createElement("div");
+  manual.className = "section abyss";
+  manual.innerHTML = `
+ <div class="section-header">
+  <h4>Spesial</h4>
+  <span class="abyss-badge">PRIORITY</span>
+ </div>
+`;
+  const weekly=document.createElement("div");
+  weekly.className="section weekly";
+  weekly.innerHTML=`<div class="section-header"><h4>WEEKLY</h4><span class="countdown" data-type="weekly">${sectionCountdown("weekly")}</span></div>`;
+
+  const shop=document.createElement("div");
+  shop.className="section shop";
+  shop.innerHTML=`<div class="section-header"><h4>WEEKLY SHOP</h4><span class="countdown" data-type="shop"
+>${sectionCountdown("shop")}</span></div>`;
+
+data.tasks.filter(t => t.active !== false).forEach(t=>{
+ c.progress[t.id] ??= {
+  checked:false,
+  count: t.max ? 0 : undefined,
+  lastReset: resetWindowId(t),
+  resetAt: 0
+};
+
+// 🔥 MIGRATION SAFE
+if(t.max && c.progress[t.id].count == null){
+ c.progress[t.id].count = c.progress[t.id].checked ? t.max : 0;
+}
+
+   let sec;
+if(t.type === "daily"){
+ sec = daily;
+ dTotal++;
+ if(c.progress[t.id].checked) dDone++;
+}
+else if(t.type === "manual"){
+ sec = manual;
+ hasManualTask = true;
+
+ // 🟢 hitung TASK (bukan max)
+ mTotal++;
+
+ // 🟢 DONE kalau:
+ if(t.max){
+  if((c.progress[t.id].count || 0) >= t.max){
+   mDone++;
+  }
+ }else if(c.progress[t.id].checked){
+  mDone++;
+ }
+}
+else if(t.type === "weekly"){
+ sec = weekly;
+ wTotal++;
+ if(c.progress[t.id].checked) wDone++;
+}
+else if(t.type === "shop"){
+ sec = shop;
+ sTotal++;
+ if(c.progress[t.id].checked) sDone++;
+}
+else{
+ return;
+}
+
+const row=document.createElement("div");
+row.className="task";
+row.draggable = true;
+row.dataset.taskId = t.id;
+row.addEventListener("dragstart", e => {
+ row.classList.add("dragging");
+ e.dataTransfer.setData("text/plain", t.id);
+});
+
+row.addEventListener("dragend", () => {
+ row.classList.remove("dragging");
+});
+
+row.addEventListener("dragover", e => {
+ e.preventDefault();
+ row.classList.add("drag-over");
+});
+
+row.addEventListener("dragleave", () => {
+ row.classList.remove("drag-over");
+});
+
+row.addEventListener("drop", e => {
+ e.preventDefault();
+ row.classList.remove("drag-over");
+
+ const fromId = e.dataTransfer.getData("text/plain");
+ const toId   = row.dataset.taskId;
+ if (fromId === toId) return;
+
+ reorderTask(fromId, toId);
+});
+   const label=document.createElement("label");
+   const cb=document.createElement("input");
+   cb.type="checkbox";
+   cb.checked=c.progress[t.id].checked;
+cb.onchange = () => {
+ c.progress[t.id].checked = cb.checked;
+row.classList.remove("reset-now");
+row.classList.remove("reset-soon");
+ if (t.max) {
+  c.progress[t.id].count = cb.checked ? t.max : 0;
+
+  // update teks counter
+  const span = row.querySelector("span");
+  if (span) {
+   span.textContent = `${c.progress[t.id].count}/${t.max}`;
+  }
+ }
+
+ row.classList.remove("reset-now");
+
+ save();
+ updateProgress(card, c);
+};
+   label.append(cb,t.name);
+   row.append(label);
+
+const diff = nextReset(t) - now();
+if(diff > 0 && diff < 3600000 && !c.progress[t.id].checked){
+ row.classList.add("reset-soon");
+}
+   if(Date.now()-c.progress[t.id].resetAt<RESET_HIGHLIGHT_MS&&!c.progress[t.id].checked)
+    row.classList.add("reset-now");
+if(t.max){
+ const counter = document.createElement("div");
+ counter.style.display="flex";
+ counter.style.gap="6px";
+ counter.style.alignItems="center";
+
+ const minus = document.createElement("button");
+ minus.textContent="−";
+
+ const plus = document.createElement("button");
+ plus.textContent="+";
+
+ const text = document.createElement("span");
+ text.textContent = `${c.progress[t.id].count}/${t.max}`;
+
+ // 🔥 helper update UI
+ function syncUI(){
+  text.textContent = `${c.progress[t.id].count}/${t.max}`;
+  cb.checked = c.progress[t.id].count === t.max;
+ }
+
+ minus.onclick = ()=>{
+  const p = c.progress[t.id];
+  if(p.count <= 0) return;
+
+  p.count--;
+  p.checked = p.count === t.max;
+
+  syncUI();
+  save();
+  updateProgress(card, c); // ✅ update bar aja
+ };
+
+ plus.onclick = ()=>{
+  const p = c.progress[t.id];
+  if(p.count >= t.max) return;
+
+  p.count++;
+  p.checked = p.count === t.max;
+
+  syncUI();
+  save();
+  updateProgress(card, c); // ✅ update bar aja
+ };
+
+ counter.append(minus,text,plus);
+ row.append(counter);
+}
+   sec.append(row);
+  });
+hideEmptySection(daily);
+if(!hasManualTask){
+ hideEmptySection(manual);
+}
+hideEmptySection(weekly);
+hideEmptySection(shop);
+// 🔽 WRAP CONTENT CHARACTER (COLLAPSE SUPPORT)
+const content = document.createElement("div");
+content.className = "char-content slide";
+
+if(c.collapsed){
+ card.classList.add("collapsed");
+}else{
+ card.classList.remove("collapsed");
+}
+
+if(dTotal) content.append(daily,progressBar("daily",dDone,dTotal));
+if(hasManualTask){
+ content.append(
+  manual,
+  progressBar("manual", mDone, mTotal || 1)
+ );
+}
+if(wTotal) content.append(weekly,progressBar("weekly",wDone,wTotal));
+if(sTotal) content.append(shop,progressBar("shop",sDone,sTotal));
+
+card.append(content);
+app.append(card);
+ });
+updateExpandAllBtn();
+applyUIMode(); 
+}
+function reorderTask(fromId, toId){
+ const fromIndex = data.tasks.findIndex(t => t.id === fromId);
+ const toIndex   = data.tasks.findIndex(t => t.id === toId);
+ if(fromIndex < 0 || toIndex < 0) return;
+
+ const [moved] = data.tasks.splice(fromIndex, 1);
+ data.tasks.splice(toIndex, 0, moved);
+
+ save();
+ render();
+}
+function progressBar(type, done, total){
+ const w = document.createElement("div");
+ w.className = `progress-wrap progress-${type}`;
+ w.innerHTML = `
+  <div class="progress-label">${type.toUpperCase()}: ${done}/${total}</div>
+  <div class="progress">
+   <span style="width:${total ? done/total*100 : 0}%"></span>
+  </div>
+ `;
+ return w;
+}
+function updateProgress(card, character){
+ const sections = {
+  daily:{done:0,total:0},
+  manual:{done:0,total:0},
+  weekly:{done:0,total:0},
+  shop:{done:0,total:0}
+ };
+
+data.tasks
+ .filter(t => t.active !== false)
+ .forEach(t=>{
+  const p = character.progress[t.id];
+  if(!p || !sections[t.type]) return;
+
+  // 🔥 ABYSS = COUNTER
+if(t.type === "manual"){
+ sections.manual.total++;
+
+ if(t.max){
+  if((p.count || 0) >= t.max){
+   sections.manual.done++;
+  }
+ }else if(p.checked){
+  sections.manual.done++;
+ }
+
+ return;
+}
+
+  // NORMAL CHECKLIST
+  sections[t.type].total++;
+  if(p.checked) sections[t.type].done++;
+ });
+
+ Object.entries(sections).forEach(([type,v])=>{
+  const wrap = card.querySelector(`.progress-${type}`);
+  if(!wrap) return;
+
+  wrap.querySelector(".progress-label").textContent =
+   `${type.toUpperCase()}: ${v.done}/${v.total}`;
+
+  wrap.querySelector(".progress span").style.width =
+   v.total ? (v.done/v.total*100)+"%" : "0%";
+ });
+}
+/* ================= ACCOUNT & CHARACTER ================= */
+function addAccount(){
+ const n = prompt("Nama Account");
+ if(!n || !n.trim()) return;
+
+ const id = "acc" + Date.now();
+
+ data.accounts.push({
+  id: id,
+  name: n.trim(),
+  characters: []
+ });
+
+ data.activeAccountId = id;
+ save();
+ render();
+}
+
+function addCharacter(){
+ const a=active(); if(!a)return;
+ const n=prompt("Nama Character");
+ if(n){
+  a.characters.push({
+   id:"c"+Date.now(),
+   name:n,
+   progress:{},
+   collapsed:false   // ⬅ PATCH
+  });
+  save();render();
+ }
+}
+function toggleChar(charId){
+ const acc = active();
+ if(!acc) return;
+
+ acc.characters.forEach(c=>{
+  if(c.id === charId){
+   c.collapsed = !c.collapsed; // ✅ TOGGLE
+  }else if(data.focusMode){
+   c.collapsed = true;
+  }
+ });
+
+ save();
+ render();
+}
+function deleteCharacter(charId){
+ const acc=active(); if(!acc)return;
+ const char=acc.characters.find(c=>c.id===charId);
+ if(!char) return;
+ if(!confirm(`Hapus character "${char.name}"?`)) return;
+ acc.characters=acc.characters.filter(c=>c.id!==charId);
+ save();render();
+}
+function resetAllData(){
+ if(!confirm("⚠ Hapus SEMUA data tracker?\nAccount, character, progress akan hilang!")) return;
+ localStorage.removeItem(STORE);
+ location.reload();
+}
+/* ================= RESET SETTINGS UI ================= */
+
+function openResetSettings(){
+ const m=document.getElementById("resetModal");
+ m.style.display="block";
+
+ const daily=data.tasks.find(t=>t.type==="daily");
+ const weekly=data.tasks.find(t=>t.type==="weekly");
+ const shop=data.tasks.find(t=>t.type==="shop");
+
+ m.innerHTML=`
+  <div class="modal-backdrop" onclick="closeResetSettings(event)">
+   <div class="modal" onclick="event.stopPropagation()">
+    <h3>⚙ Reset Settings</h3>
+
+    <h4 style="color:var(--accent)">DAILY</h4>
+    <div class="form-row">
+     <label>Reset Hour</label>
+<input type="time" id="dailyHour"
+ value="${String(daily.hour).padStart(2,"0")}:${String(daily.minute||0).padStart(2,"0")}">
+    </div>
+
+<h4 style="color:var(--weeklyAccent)">WEEKLY</h4>
+<div class="form-row">
+ <select id="weeklyDay">${dayOptions(weekly.day)}</select>
+ <input type="time" id="weeklyHour"
+  value="${String(weekly.hour).padStart(2,"0")}:${String(weekly.minute||0).padStart(2,"0")}">
+</div>
+
+<h4 style="color:var(--shopAccent)">WEEKLY SHOP</h4>
+<div class="form-row">
+ <select id="shopDay">${dayOptions(shop.day)}</select>
+ <input type="time" id="shopHour"
+  value="${String(shop.hour).padStart(2,"0")}:${String(shop.minute||0).padStart(2,"0")}">
+</div>
+<h4>APPLY MODE</h4>
+<div class="form-row">
+ <label>
+  <input type="radio" name="applyMode" value="next" checked>
+  Apply mulai reset berikutnya
+ </label>
+</div>
+<div class="form-row">
+ <label style="color:var(--danger)">
+  <input type="radio" name="applyMode" value="now">
+  Apply & reset semua sekarang
+ </label>
+</div>
+    <div class="modal-footer">
+     <button onclick="closeResetSettings()">Cancel</button>
+     <button class="primary" onclick="saveResetSettings()">Save</button>
+    </div>
+   </div>
+  </div>
+ `;
+}
+
+function closeResetSettings(e){
+ if(e && e.target!==e.currentTarget) return;
+ document.getElementById("resetModal").style.display="none";
+}
+
+function dayOptions(selected){
+ const days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+ return days.map((d,i)=>
+  `<option value="${i}" ${i===selected?"selected":""}>${d}</option>`
+ ).join("");
+}
+
+function saveResetSettings(){
+ const dailyHourEl  = document.getElementById("dailyHour");
+ const weeklyHourEl = document.getElementById("weeklyHour");
+ const shopHourEl   = document.getElementById("shopHour");
+ const weeklyDayEl  = document.getElementById("weeklyDay");
+ const shopDayEl    = document.getElementById("shopDay");
+
+ const mode = document.querySelector('input[name="applyMode"]:checked')?.value || "next";
+
+ // update task reset config
+ data.tasks.forEach(t=>{
+  if(t.type==="daily"){
+   const [h,m]=dailyHourEl.value.split(":");
+   t.hour=+h; t.minute=+m;
+  }
+  if(t.type==="weekly"){
+   const [h,m]=weeklyHourEl.value.split(":");
+   t.day=+weeklyDayEl.value;
+   t.hour=+h; t.minute=+m;
+  }
+  if(t.type==="shop"){
+   const [h,m]=shopHourEl.value.split(":");
+   t.day=+shopDayEl.value;
+   t.hour=+h; t.minute=+m;
+  }
+ });
+
+ // 🧠 PRO LOGIC
+ data.accounts.forEach(acc=>{
+  acc.characters.forEach(c=>{
+   data.tasks.forEach(t=>{
+    if(!c.progress[t.id]) return;
+
+if(mode === "next"){
+ // JANGAN reset checklist
+ c.progress[t.id].lastReset = resetWindowId(t);
+ c.progress[t.id].resetAt ??= 0;
+}
+
+    if(mode==="now"){
+     // force reset sekarang
+c.progress[t.id]={
+ checked:false,
+ count: t.max ? 0 : undefined,
+ lastReset: resetWindowId(t),
+ resetAt: Date.now()
+};
+    }
+   });
+  });
+ });
+
+ save();
+ closeResetSettings();
+ render();
+}
+setInterval(()=>{
+ // update countdown (jam:menit)
+  if (document.hidden) return;
+ document.querySelectorAll(".countdown").forEach(el=>{
+  el.textContent = sectionCountdown(el.dataset.type);
+ });
+
+ // cek reset (aman walau jarang)
+ autoResetCheck();
+
+},60000); // ⬅ 30 detik
+// 🔥 CLICK HEADER TO COLLAPSE / EXPAND
+document.addEventListener("click", e => {
+ const header = e.target.closest(".char-header");
+ if (!header) return;
+
+ // ❌ kalau klik tombol / input → biarin
+ if (e.target.closest("button, input, select")) return;
+
+ const charId = header.dataset.char;
+ if (!charId) return;
+
+ toggleChar(charId);
+});
+// 🔥 WAKE UP SAAT TAB AKTIF LAGI
+document.addEventListener("visibilitychange", ()=>{
+ if(!document.hidden){
+  autoResetCheck();
+  render();
+ }
+});
+/* ================= INIT ================= */
+if(!data.accounts.length){
+ const name = prompt("Masukkan nama Account:");
+
+ data.accounts.push({
+  id:"acc"+Date.now(),
+name: name && name.trim() ? name.trim() : "Default",
+  characters:[]
+ });
+
+ data.activeAccountId = data.accounts[0].id;
+ save();
+}
+// 🔥 cek reset SEKALI saat app dibuka
+autoResetCheck(); // ⬅ reset dulu kalau ada yg kelewat
+
+render(); // ⬅ baru render UI
+async function forceUpdatePWA(){
+ if(!confirm("Force update aplikasi?")) return;
+
+ if ("serviceWorker" in navigator) {
+  const regs = await navigator.serviceWorker.getRegistrations();
+  for (const reg of regs) {
+   await reg.unregister();
+  }
+ }
+
+ if ("caches" in window) {
+  const keys = await caches.keys();
+  await Promise.all(keys.map(k => caches.delete(k)));
+ }
+
+ location.reload();
+}
+
+
+async function applyUpdate(){
+ const regs = await navigator.serviceWorker.getRegistrations();
+ for (const reg of regs) {
+  await reg.unregister();
+ }
+ location.reload();
+}
+function expandAllChars(){
+ const acc = active();
+ if(!acc.characters.length){
+ alert("Belum ada character 😅");
+ return;
+}
+ // 🔥 matikan focus mode biar gak auto collapse lagi
+ data.focusMode = false;
+
+ acc.characters.forEach(c=>{
+  c.collapsed = false;
+ });
+
+ save();
+ render();
+}
+function collapseAllChars(){
+ const acc = active();
+ if(!acc) return;
+if(!acc.characters.length){
+ alert("Belum ada character 😅");
+ return;
+}
+ acc.characters.forEach(c=>{
+  c.collapsed = true;
+ });
+
+ save();
+ render();
+}
+function toggleExpandAll(){
+ const acc = active();
+ if(!acc) return;
+
+ // kalau belum ada character → stop
+ if(!acc.characters.length) return;
+
+ // cek: apakah semua sudah terbuka?
+ const allExpanded = acc.characters.every(c => !c.collapsed);
+
+ if(allExpanded){
+  // 🔼 COLLAPSE ALL
+  acc.characters.forEach(c=>{
+   c.collapsed = true;
+  });
+ }else{
+  // 🔽 EXPAND ALL
+  data.focusMode = false; // matikan Smart Focus biar gak konflik
+  acc.characters.forEach(c=>{
+   c.collapsed = false;
+  });
+ }
+
+ save();
+ render();
+}
+function updateExpandAllBtn(){
+ const acc = active();
+ const btn = document.getElementById("expandAllBtn");
+
+ if(!btn || !acc || !acc.characters.length) return;
+
+ const allExpanded = acc.characters.every(c => !c.collapsed);
+
+ btn.innerHTML = allExpanded
+  ? "🔼 Collapse All"
+  : "🔽 Expand All";
+}
+ // taskmanager
+function openTaskManager(){
+ const m = document.getElementById("taskModal");
+ if(!m) return;
+ m.style.display="flex";
+
+ // helper render list task
+ const renderList = (type, title, color) => {
+  const list = data.tasks.filter(t => t.type === type);
+  if(!list.length) return "";
+
+  return `
+   <h4 style="margin:12px 0 6px;color:${color}">
+    ${title}
+   </h4>
+   ${list.map(t=>`
+    <div class="task">
+     <label>
+      <input type="checkbox" ${t.active!==false?"checked":""}
+       onchange="toggleTaskActive('${t.id}',this.checked)">
+      ${t.name}
+      <small>
+       (${t.type}${t.max ? ` · max ${t.max}` : ""})
+      </small>
+     </label>
+
+     <button onclick="editTask('${t.id}')">✏️</button>
+     <button onclick="deleteTask('${t.id}')" style="color:#ff5252">🗑</button>
+    </div>
+   `).join("")}
+  `;
+ };
+
+ m.innerHTML=`
+ <div class="modal-backdrop" onclick="closeTaskManager(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+   <h3>📝 Task Manager</h3>
+
+   <button class="primary" onclick="openTaskForm()">+ Add Task</button>
+
+   <div style="margin-top:10px">
+    ${renderList("daily","DAILY","var(--accent)")}
+    ${renderList("manual","Spesial","var(--accent)")}
+    ${renderList("weekly","WEEKLY","var(--weeklyAccent)")}
+    ${renderList("shop","WEEKLY SHOP","var(--shopAccent)")}
+   </div>
+
+   <div class="modal-footer">
+    <button onclick="closeTaskManager()">Close</button>
+   </div>
+  </div>
+ </div>`;
+}
+
+function closeTaskManager(e){
+ if(e && e.target!==e.currentTarget) return;
+ document.getElementById("taskModal").style.display="none";
+}
+
+function toggleTaskActive(id,val){
+ const t=data.tasks.find(t=>t.id===id);
+ if(!t)return;
+ t.active=val;
+ save();render();
+}
+function openTaskForm(task=null){
+ const m=document.getElementById("taskModal");
+ const edit=!!task;
+
+ m.innerHTML=`
+ <div class="modal-backdrop">
+  <div class="modal">
+   <h3>${edit?"Edit":"Add"} Task</h3>
+
+   <div class="form-row">
+    <label>Nama Task</label>
+    <input id="taskName" value="${task?.name||""}">
+   </div>
+
+   <div class="form-row">
+    <label>Kategori</label>
+    <select id="taskType">
+     ${["daily","manual","weekly","shop"].map(t=>
+      `<option ${task?.type===t?"selected":""}>${t}</option>`
+     ).join("")}
+    </select>
+   </div>
+
+   <div class="form-row">
+    <label>Max Count (opsional)</label>
+    <input id="taskMax" type="number" min="0" placeholder="contoh: 5"
+     value="${task?.max ?? ""}">
+   </div>
+
+   <small style="font-size:11px;opacity:.7">
+    Kosong / 0 = task checklist biasa<br>
+    > 0 = task pakai counter
+   </small>
+
+   <div class="modal-footer">
+    <button onclick="openTaskManager()">Cancel</button>
+    <button class="primary" onclick="saveTask('${task?.id||""}')">
+     Save
+    </button>
+   </div>
+  </div>
+ </div>`;
+}
+
+function saveTask(id){
+ const name = document.getElementById("taskName").value.trim();
+ const type = document.getElementById("taskType").value;
+ const maxVal = parseInt(document.getElementById("taskMax").value);
+
+ if(!name) return alert("Nama kosong");
+
+ const max = maxVal > 0 ? maxVal : undefined;
+
+ if(id){
+  // EDIT
+  const t = data.tasks.find(t => t.id === id);
+  if(!t) return;
+
+  t.name = name;
+  t.type = type;
+  t.max  = max;
+
+ }else{
+  // ADD BARU
+
+data.tasks.push({
+ id: "t" + Date.now(),
+ name,
+ type,
+ max,
+ active: true,
+
+ day: type === "daily" ? undefined : 0,
+ hour: 4,
+ minute: 0
+});
+ }
+
+ save();
+ openTaskManager();
+ render();
+}
+
+function editTask(id){
+ const t=data.tasks.find(t=>t.id===id);
+ if(t)openTaskForm(t);
+}
+
+function deleteTask(id){
+ if(!confirm("Hapus task ini?"))return;
+
+ data.tasks=data.tasks.filter(t=>t.id!==id);
+
+ data.accounts.forEach(a=>{
+  a.characters.forEach(c=>{
+   delete c.progress[id];
+  });
+ });
+
+ save();
+ openTaskManager();
+ render();
+}
+function openManualReset(){
+ const m = document.getElementById("manualResetModal");
+ m.style.display = "block";
+
+ m.innerHTML = `
+ <div class="modal-backdrop" onclick="closeManualReset(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+   <h3>♻ Manual Reset</h3>
+
+   <label><input type="checkbox" value="daily"> Daily</label><br>
+   <label><input type="checkbox" value="manual"> Spesial</label><br>
+   <label><input type="checkbox" value="weekly"> Weekly</label><br>
+   <label><input type="checkbox" value="shop"> Weekly Shop</label><br>
+
+   <hr style="opacity:.3">
+
+   <label style="color:var(--danger)">
+    <input type="checkbox" value="all"> Reset SEMUA
+   </label>
+
+   <div class="modal-footer">
+    <button onclick="closeManualReset()">Cancel</button>
+    <button class="primary" onclick="applyManualReset()">Reset</button>
+   </div>
+  </div>
+ </div>`;
+}
+
+function closeManualReset(e){
+ if(e && e.target !== e.currentTarget) return;
+ document.getElementById("manualResetModal").style.display="none";
+}
+function applyManualReset(){
+ const modal = document.getElementById("manualResetModal");
+ const checked = [...modal.querySelectorAll("input[type=checkbox]:checked")]
+  .map(i => i.value);
+
+ if(!checked.length){
+  alert("Pilih minimal satu kategori");
+  return;
+ }
+
+
+ const resetAll = checked.includes("all");
+
+ data.accounts.forEach(acc=>{
+  acc.characters.forEach(c=>{
+   data.tasks.forEach(t=>{
+    if(!c.progress[t.id]) return;
+
+    if(
+     resetAll ||
+     checked.includes(t.type)
+    ){
+     c.progress[t.id] = {
+      checked:false,
+      count: t.max ? 0 : undefined,
+      lastReset: resetWindowId(t),
+      resetAt: Date.now()
+     };
+    }
+   });
+  });
+ });
+
+ save();
+ closeManualReset();
+ render();
+}
+</script>
+<script>
+let marketCalcInited = false;
+if ("serviceWorker" in navigator) {
+ navigator.serviceWorker.register("/daily-task/service-worker.js");
+
+ navigator.serviceWorker.addEventListener("message", event => {
+ if (event.data?.type === "UPDATE_READY") {
+
+  const last = localStorage.getItem("app_version");
+
+  if (last !== event.data.version) {
+   localStorage.setItem("app_version", event.data.version);
+
+   // 🔥 AUTO APPLY UPDATE
+   applyUpdate();
+  }
+ }
+});
+}
+function openMarketCalc(){
+ document.getElementById("marketCalcModal").style.display="flex";
+
+ if(!marketCalcInited){
+  initMarketCalc();
+  marketCalcInited = true;
+ }
+}
+function closeMarketCalc(){
+ document.getElementById("marketCalcModal").style.display="none";
+}
+function formatRupiah(num){
+ return num.toLocaleString("id-ID");
+}
+
+function parseRupiah(str){
+ return parseInt(str.replace(/[^\d]/g,"")) || 0;
+}
+function initMarketCalc(){
+ let STEP = 1000;
+ const amt = document.getElementById("calcAmount");
+
+function calc(){
+ const raw = parseRupiah(amt.value);
+
+ // auto format input
+ if(amt.value){
+  amt.value = formatRupiah(raw);
+ }
+
+ const aEl = document.querySelector("#calcA b");
+ const bEl = document.querySelector("#calcB b");
+ const dEl = document.getElementById("calcDiff");
+
+ if(!raw){
+  if(aEl) aEl.textContent = "-";
+  if(bEl) bEl.textContent = "-";
+  if(dEl) dEl.textContent = "-";
+  return;
+ }
+
+ const mode = document.querySelector('input[name="calcMode"]:checked').value;
+ let a,b,d;
+
+ if(mode==="gross"){
+  a = Math.floor(raw * 0.9);
+  b = Math.floor(raw * 0.8);
+  d = a - b;
+ }else{
+  a = Math.ceil(raw / 0.9);
+  b = Math.ceil(raw / 0.8);
+  d = b - a;
+ }
+
+ if(aEl) aEl.textContent = formatRupiah(a);
+ if(bEl) bEl.textContent = formatRupiah(b);
+ if(dEl) dEl.textContent = formatRupiah(d);
+}
+
+ amt.oninput = calc;
+
+// keypad angka (PATCH AMAN)
+document.querySelectorAll(".calc-keypad button[data-n]").forEach(b=>{
+ b.onclick = ()=>{
+  const current = parseRupiah(amt.value);   // ambil angka bersih
+  const digit   = parseInt(b.dataset.n);    // angka ditekan
+  const next    = current * 10 + digit;     // append numeric
+
+  amt.value = formatRupiah(next);
+  calc();
+ };
+});
+// tombol hapus 1 digit (BACKSPACE)
+document.querySelector(".calc-keypad button[data-back]").onclick = ()=>{
+ const current = parseRupiah(amt.value);
+
+ if(!current){
+  amt.value = "";
+ }else{
+  const next = Math.floor(current / 10);
+  amt.value = next ? formatRupiah(next) : "";
+ }
+
+ calc();
+};
+ // tombol +
+ document.querySelector("[data-step='+']").onclick = ()=>{
+  amt.value = formatRupiah(parseRupiah(amt.value) + STEP);
+  calc();
+ };
+
+ // tombol -
+ document.querySelector("[data-step='-']").onclick = ()=>{
+  amt.value = formatRupiah(
+   Math.max(0, parseRupiah(amt.value) - STEP)
+  );
+  calc();
+ };
+
+ // clear
+ document.querySelector(".calc-clear").onclick = ()=>{
+  amt.value = "";
+  calc();
+ };
+
+ // step
+ document.getElementById("calcStep").onchange = e=>{
+  STEP = parseInt(e.target.value);
+ };
+
+ // mode change
+ document.querySelectorAll("input[name='calcMode']").forEach(r=>{
+  r.onchange = calc;
+ });
+}
+function toggleFocusMode(){
+ data.focusMode = !data.focusMode;
+ save();
+ render();
+}
+</script>
+<div id="resetModal" style="display:none"></div>
+<div id="taskModal" style="display:none"></div>
+
+<div id="marketCalcModal" class="modal-backdrop" style="display:none">
+ <div class="modal" onclick="event.stopPropagation()">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+   <h3>📊 Market Calculator</h3>
+   <button onclick="closeMarketCalc()" style="border:none;background:none;color:#ff5252;font-size:16px">✕</button>
+  </div>
+
+  <div class="calc-modes">
+   <label><input type="radio" name="calcMode" value="gross" checked>
+    Dari harga jual
+   </label>
+   <label><input type="radio" name="calcMode" value="net">
+    Dari target bersih
+   </label>
+  </div>
+
+  <div class="calc-input">
+   <input type="text" id="calcAmount" placeholder="Masukkan nominal">
+  </div>
+
+  <div class="calc-result">
+   <div id="calcA"><span>Market (10%)</span><b>-</b></div>
+   <div id="calcB"><span>World Market (20%)</span><b>-</b></div>
+   <div><span>Selisih</span><b id="calcDiff">-</b></div>
+  </div>
+
+  <div class="calc-keypad">
+   <button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button>
+   <button data-n="4">4</button><button data-n="5">5</button><button data-n="6">6</button>
+   <button data-n="7">7</button><button data-n="8">8</button><button data-n="9">9</button>
+   <button data-step="+">+</button><button data-n="0">0</button><button data-step="-">−</button>
+   <button data-back="1">⌫</button>
+   <button class="calc-clear">C</button>
+      <select id="calcStep">
+    <option value="1000">1.000</option>
+    <option value="10000">10.000</option>
+    <option value="100000">100.000</option>
+   </select>
+  </div>
+ </div>
+</div>
+<div id="manualResetModal" style="display:none"></div>
+</body>
+</html>

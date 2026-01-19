@@ -1,0 +1,23 @@
+{
+  "name": "Aion 2 Daily Task 7.3.1",
+  "short_name": "Aion2 Tracker",
+  "start_url": "/daily-task/",
+  "scope": "/daily-task/",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "icons": [
+    {
+      "src": "/daily-task/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/daily-task/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+
+
